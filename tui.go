@@ -294,8 +294,9 @@ func (t *CtopTUI) resumeRaw(fd int) *term.State {
 func (t *CtopTUI) execConnect(alias string, fd int, oldState *term.State) {
 	t.restoreCooked(fd, oldState)
 	ConnectSSH(alias)
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("\n%sDisconnected from %s. Press Enter to return to HSSH...%s", ColorGray, alias, ColorReset)
-	bufio.NewReader(os.Stdin).ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
@@ -304,7 +305,7 @@ func (t *CtopTUI) execEdit(alias string, fd int, oldState *term.State) {
 	reader := bufio.NewReader(os.Stdin)
 	cmdEdit(t.Config, reader, alias)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
-	reader.ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
@@ -313,7 +314,7 @@ func (t *CtopTUI) execDelete(alias string, fd int, oldState *term.State) {
 	reader := bufio.NewReader(os.Stdin)
 	cmdRemove(t.Config, reader, alias)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
-	reader.ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
@@ -322,7 +323,7 @@ func (t *CtopTUI) execAdd(fd int, oldState *term.State) {
 	reader := bufio.NewReader(os.Stdin)
 	cmdAdd(t.Config, reader, nil)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
-	reader.ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
@@ -331,7 +332,7 @@ func (t *CtopTUI) execCopyKey(alias string, fd int, oldState *term.State) {
 	reader := bufio.NewReader(os.Stdin)
 	cmdCopyKey(t.Config, reader, alias)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
-	reader.ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
@@ -340,15 +341,16 @@ func (t *CtopTUI) execTest(alias string, fd int, oldState *term.State) {
 	reader := bufio.NewReader(os.Stdin)
 	cmdTest(t.Config, reader, alias)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
-	reader.ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
 func (t *CtopTUI) execPing(alias string, fd int, oldState *term.State) {
 	t.restoreCooked(fd, oldState)
 	cmdPing(t.Config, alias)
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
-	bufio.NewReader(os.Stdin).ReadString('\n')
+	Prompt(reader, "", "")
 	_ = t.resumeRaw(fd)
 }
 
@@ -402,7 +404,7 @@ func (t *CtopTUI) Draw() {
 
 	// Column Headers
 	b.WriteString(fmt.Sprintf("  %s%-18s %-12s %-22s %-12s %-6s %-12s%s\r\n",
-		ColorBold+ColorWhite, "ALIAS", "STATUS", "HOSTNAME / IP", "USER", "PORT", "TAGS", ColorReset))
+		ColorBold+ColorWhite, "ALIAS", "STATUS", "HOSTNAME / IP", "USER", "PORT", "LABEL", ColorReset))
 	b.WriteString(fmt.Sprintf("%s%s%s\r\n", ColorGray, strings.Repeat("─", ruleLen), ColorReset))
 
 	// Rows
@@ -506,7 +508,7 @@ func (t *CtopTUI) renderModal(b *strings.Builder, host *HostEntry) {
 		desc string
 	}{
 		{"c / Enter", "Connect via SSH"},
-		{"e", "Edit host settings (IP, user, port, tags)"},
+		{"e", "Edit host settings (IP, user, port, label)"},
 		{"k", "Copy public SSH key (passwordless setup)"},
 		{"t", "Test passwordless connection"},
 		{"d", "Delete host entry"},

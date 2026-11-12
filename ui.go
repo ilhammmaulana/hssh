@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -33,21 +32,35 @@ func PrintBanner() {
 	fmt.Println(banner)
 }
 
-// Prompt asks the user for input with an optional default value
+// Prompt asks the user for input, robustly handling \n, \r, and \r\n
 func Prompt(reader *bufio.Reader, label string, defaultValue string) string {
-	if defaultValue != "" {
-		fmt.Printf("%s%s [%s%s%s]:%s ", ColorBold, label, ColorYellow, defaultValue, ColorReset+ColorBold, ColorReset)
-	} else {
-		fmt.Printf("%s%s:%s ", ColorBold, label, ColorReset)
+	if label != "" {
+		if defaultValue != "" {
+			fmt.Printf("%s%s [%s%s%s]:%s ", ColorBold, label, ColorYellow, defaultValue, ColorReset+ColorBold, ColorReset)
+		} else {
+			fmt.Printf("%s%s:%s ", ColorBold, label, ColorReset)
+		}
 	}
 
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("\nAborted.")
-		os.Exit(0)
+	var sb strings.Builder
+	for {
+		b, err := reader.ReadByte()
+		if err != nil {
+			break
+		}
+		if b == '\r' || b == '\n' {
+			// Consume trailing \n if CRLF
+			if b == '\r' {
+				if next, err := reader.Peek(1); err == nil && len(next) > 0 && next[0] == '\n' {
+					_, _ = reader.ReadByte()
+				}
+			}
+			break
+		}
+		sb.WriteByte(b)
 	}
 
-	input = strings.TrimSpace(input)
+	input := strings.TrimSpace(sb.String())
 	if input == "" {
 		return defaultValue
 	}

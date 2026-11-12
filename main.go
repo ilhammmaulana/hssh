@@ -177,7 +177,7 @@ func cmdList(cfg *SSHConfig, checkPing bool) {
 	fmt.Printf("\n%s%sConfigured SSH Hosts:%s\n", ColorBold, ColorWhite, ColorReset)
 	fmt.Printf("%s%s%s\n", ColorGray, strings.Repeat("=", 88), ColorReset)
 	fmt.Printf("%s%-18s %-12s %-22s %-12s %-6s %-12s%s\n",
-		ColorBold, "ALIAS", "STATUS", "HOSTNAME / IP", "USER", "PORT", "TAGS", ColorReset)
+		ColorBold, "ALIAS", "STATUS", "HOSTNAME / IP", "USER", "PORT", "LABEL", ColorReset)
 	fmt.Printf("%s%s%s\n", ColorGray, strings.Repeat("-", 88), ColorReset)
 
 	for _, e := range cfg.Entries {
@@ -270,7 +270,7 @@ func cmdAdd(cfg *SSHConfig, reader *bufio.Reader, args []string) {
 		port = Prompt(reader, "SSH Port", "22")
 	}
 
-	tags = Prompt(reader, "Tags / Environment (optional, e.g. prod,api)", "")
+	tags = Prompt(reader, "Label (e.g. prod, web, staging - optional)", "")
 
 	privKeyPath, _ := EnsureDefaultSSHKey(reader)
 	identityKey := "~/.ssh/id_ed25519"
@@ -356,7 +356,14 @@ func cmdEdit(cfg *SSHConfig, reader *bufio.Reader, target string) {
 	if target == "" {
 		fmt.Printf("\n%sSelect a server to edit:%s\n", ColorBold, ColorReset)
 		for i, e := range cfg.Entries {
-			fmt.Printf("  %s[%d]%s %s (%s)\n", ColorCyan, i+1, ColorReset, e.Alias, e.HostName)
+			labelDisplay := e.Tags
+			if labelDisplay == "" {
+				labelDisplay = "none"
+			}
+			fmt.Printf("  %s[%d]%s %s (%s@%s:%s) %s[label: %s]%s\n",
+				ColorCyan, i+1, ColorReset,
+				e.Alias, e.User, e.HostName, e.Port,
+				ColorGray, labelDisplay, ColorReset)
 		}
 		choice := Prompt(reader, "Enter number or alias", "")
 		if num, err := strconv.Atoi(choice); err == nil && num >= 1 && num <= len(cfg.Entries) {
@@ -368,20 +375,57 @@ func cmdEdit(cfg *SSHConfig, reader *bufio.Reader, target string) {
 
 	entry := cfg.Find(target)
 	if entry == nil {
-		fmt.Printf("%sHost '%s' not found.%s\n", ColorRed, target, ColorReset)
+		fmt.Printf("%sHost '%s' not found in config.%s\n", ColorRed, target, ColorReset)
 		return
 	}
 
-	fmt.Printf("\n%sEditing [%s] (press Enter to keep current value):%s\n", ColorBold, entry.Alias, ColorReset)
-	newAlias := Prompt(reader, "Alias", entry.Alias)
-	newHost := Prompt(reader, "Hostname / IP", entry.HostName)
-	newUser := Prompt(reader, "Username", entry.User)
-	newPort := Prompt(reader, "Port", entry.Port)
-	newKey := Prompt(reader, "Identity Key", entry.IdentityFile)
-	newTags := Prompt(reader, "Tags", entry.Tags)
+	fmt.Printf("\n%sEditing Server: %s%s%s (press Enter to keep current value)%s\n",
+		ColorBold, ColorCyan, entry.Alias, ColorReset+ColorBold, ColorReset)
 
-	if !strings.EqualFold(newAlias, entry.Alias) {
-		cfg.Remove(entry.Alias)
+	// 1. Alias (cannot be empty)
+	newAlias := Prompt(reader, "Alias / Name", entry.Alias)
+	for strings.TrimSpace(newAlias) == "" {
+		fmt.Printf("%sAlias cannot be empty!%s\n", ColorRed, ColorReset)
+		newAlias = Prompt(reader, "Alias / Name", entry.Alias)
+	}
+	newAlias = strings.ReplaceAll(strings.TrimSpace(newAlias), " ", "-")
+
+	// 2. Hostname / IP (cannot be empty)
+	newHost := Prompt(reader, "Hostname / IP", entry.HostName)
+	for strings.TrimSpace(newHost) == "" {
+		fmt.Printf("%sHostname or IP cannot be empty!%s\n", ColorRed, ColorReset)
+		newHost = Prompt(reader, "Hostname / IP", entry.HostName)
+	}
+
+	// 3. User
+	newUser := Prompt(reader, "Remote Username", entry.User)
+	if strings.TrimSpace(newUser) == "" {
+		newUser = entry.User
+	}
+
+	// 4. Port
+	newPort := Prompt(reader, "SSH Port", entry.Port)
+	if strings.TrimSpace(newPort) == "" {
+		newPort = "22"
+	}
+
+	// 5. Identity Key
+	newKey := Prompt(reader, "Identity Key File", entry.IdentityFile)
+
+	// 6. Label (Tags)
+	labelPrompt := "Label (e.g. prod, web)"
+	if entry.Tags != "" {
+		labelPrompt = "Label (enter '-' to remove)"
+	}
+	newTags := Prompt(reader, labelPrompt, entry.Tags)
+	if newTags == "-" || strings.EqualFold(newTags, "none") || strings.EqualFold(newTags, "clear") {
+		newTags = ""
+	}
+
+	// Save updates
+	oldAlias := entry.Alias
+	if !strings.EqualFold(newAlias, oldAlias) {
+		cfg.Remove(oldAlias)
 	}
 
 	entry.Alias = newAlias
@@ -395,7 +439,16 @@ func cmdEdit(cfg *SSHConfig, reader *bufio.Reader, target string) {
 	if err := cfg.Save(); err != nil {
 		fmt.Printf("%sFailed to save config: %v%s\n", ColorRed, err, ColorReset)
 	} else {
-		fmt.Printf("%s✓ Server [%s] updated successfully!%s\n", ColorGreen, newAlias, ColorReset)
+		displayLabel := entry.Tags
+		if displayLabel == "" {
+			displayLabel = "none"
+		}
+		fmt.Printf("\n%s✓ Server [%s] successfully updated!%s\n", ColorGreen, newAlias, ColorReset)
+		fmt.Printf("  %sIP:%s %s  %sUser:%s %s  %sPort:%s %s  %sLabel:%s %s%s%s\n",
+			ColorGray, ColorReset, entry.HostName,
+			ColorGray, ColorReset, entry.User,
+			ColorGray, ColorReset, entry.Port,
+			ColorGray, ColorReset, ColorCyan, displayLabel, ColorReset)
 	}
 }
 

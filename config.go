@@ -83,7 +83,13 @@ func LoadSSHConfig() (*SSHConfig, error) {
 		line := scanner.Text()
 		trimmed := strings.TrimSpace(line)
 
-		if strings.HasPrefix(trimmed, "# tags:") || strings.HasPrefix(trimmed, "# tag:") {
+		lowerTrimmed := strings.ToLower(trimmed)
+		if strings.HasPrefix(lowerTrimmed, "# label:") ||
+			strings.HasPrefix(lowerTrimmed, "# labels:") ||
+			strings.HasPrefix(lowerTrimmed, "# tags:") ||
+			strings.HasPrefix(lowerTrimmed, "# tag:") ||
+			strings.HasPrefix(lowerTrimmed, "# env:") ||
+			strings.HasPrefix(lowerTrimmed, "# description:") {
 			parts := strings.SplitN(trimmed, ":", 2)
 			if len(parts) == 2 {
 				pendingTags = strings.TrimSpace(parts[1])
@@ -233,7 +239,7 @@ func (cfg *SSHConfig) Save() error {
 	// Write host blocks
 	for i, e := range cfg.Entries {
 		if e.Tags != "" {
-			_, _ = writer.WriteString(fmt.Sprintf("# tags: %s\n", e.Tags))
+			_, _ = writer.WriteString(fmt.Sprintf("# label: %s\n", e.Tags))
 		}
 		_, _ = writer.WriteString(fmt.Sprintf("Host %s\n", e.Alias))
 		if e.HostName != "" {
