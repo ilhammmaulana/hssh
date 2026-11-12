@@ -8,7 +8,6 @@ before:
 
 builds:
   - id: hssh
-    dir: src
     main: .
     binary: hssh
     env:
@@ -25,18 +24,20 @@ builds:
 
 archives:
   - id: default
-    format: tar.gz
+    formats:
+      - tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
 
 nfpms:
   - id: packages
     package_name: hssh
     vendor: Ilham Maulana
     homepage: https://ilhammmaulana.github.io/hssh/
-    maintainer: Ilham Maulana <ilham@example.com>
+    maintainer: Ilham Maulana <ilhammmaulana688@gmail.com>
     description: Fast & Seamless OpenSSH Connection Manager
     license: MIT
     formats:
