@@ -7,46 +7,100 @@
   <meta name="description" content="High-speed OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication for Linux, macOS, and Windows. Single static binary, zero runtime dependencies.">
   <meta name="keywords" content="ssh, openssh, ssh config, passwordless ssh, ed25519, sysadmin, devops, linux, macos, windows openssh, terminal tool, cli">
   <meta name="author" content="Ilham Maulana">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#070a0f">
   <link rel="canonical" href="https://ilhammmaulana.github.io/hssh/">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ilhammmaulana.github.io/hssh/">
   <meta property="og:site_name" content="HSSH">
+  <meta property="og:locale" content="en_US">
   <meta property="og:title" content="HSSH — Fast OpenSSH Connection Manager">
   <meta property="og:description" content="Configure host aliases, run parallel latency checks, and deploy ed25519 key authentication without retyping passwords or memorizing IP addresses.">
   <meta property="og:image" content="https://ilhammmaulana.github.io/hssh/assets/hssh-preview.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="HSSH Terminal Interface Preview">
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@ilhammmaulana">
+  <meta name="twitter:creator" content="@ilhammmaulana">
   <meta name="twitter:url" content="https://ilhammmaulana.github.io/hssh/">
   <meta name="twitter:title" content="HSSH — Fast OpenSSH Connection Manager">
   <meta name="twitter:description" content="High-performance, zero-dependency OpenSSH companion for Linux, macOS, and Windows.">
   <meta name="twitter:image" content="https://ilhammmaulana.github.io/hssh/assets/hssh-preview.svg">
+  <meta name="twitter:image:alt" content="HSSH Terminal Interface Preview">
 
   <!-- Structured Data (JSON-LD) -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "HSSH",
-    "operatingSystem": "Linux, macOS, Windows",
-    "applicationCategory": "DeveloperApplication",
-    "applicationSubCategory": "Command Line Tool",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
+  [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "HSSH",
+      "operatingSystem": "Linux, macOS, Windows",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Network CLI Tool",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "High-performance, single-binary OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication.",
+      "softwareVersion": "1.0.0",
+      "author": {
+        "@type": "Person",
+        "name": "Ilham Maulana",
+        "url": "https://github.com/ilhammmaulana"
+      },
+      "downloadUrl": "https://github.com/ilhammmaulana/hssh/releases",
+      "featureList": [
+        "Concurrent TCP latency ping checks using Goroutines",
+        "Zero-configuration Ed25519 key pair generation",
+        "Automated remote key deployment with fallback piping",
+        "Automatic safety backups of ~/.ssh/config",
+        "Full cross-platform support for Linux, macOS, and Windows",
+        "Standard OpenSSH compliance"
+      ],
+      "screenshot": "https://ilhammmaulana.github.io/hssh/assets/hssh-preview.svg"
     },
-    "description": "High-performance, single-binary OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication.",
-    "softwareVersion": "1.0.0",
-    "author": {
-      "@type": "Person",
-      "name": "Ilham Maulana"
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "https://ilhammmaulana.github.io/hssh/",
+      "name": "HSSH Documentation",
+      "description": "Documentation and installation guide for HSSH, the fast OpenSSH connection manager.",
+      "author": {
+        "@type": "Person",
+        "name": "Ilham Maulana"
+      }
     },
-    "downloadUrl": "https://github.com/ilhammmaulana/hssh/releases"
-  }
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to Configure Passwordless SSH with HSSH",
+      "description": "Quickly setup host aliases and ed25519 passwordless keys to remote servers.",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Install HSSH",
+          "text": "Run the universal one-liner installer for Linux/macOS or PowerShell installer for Windows."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Add Remote Host",
+          "text": "Run 'hssh add <alias> <ip> <user> <port>' to automatically generate keys and copy to server."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Connect Instantly",
+          "text": "Connect with 'hssh <alias>' without entering passwords or IP addresses."
+        }
+      ]
+    }
+  ]
   </script>
 
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
