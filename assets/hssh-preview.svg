@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+      .term-text { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 13.5px; fill: #d1d5db; }
+      .cyan-bold { fill: #38bdf8; font-weight: 700; }
+      .green-bold { fill: #4ade80; font-weight: 700; }
+      .yellow-bold { fill: #facc15; font-weight: 700; }
+      .red-bold { fill: #f87171; font-weight: 700; }
+      .gray { fill: #6b7280; }
+      .white-bold { fill: #ffffff; font-weight: 700; }
+      .green { fill: #4ade80; }
+      .yellow { fill: #facc15; }
+      .red { fill: #f87171; }
+      .purple { fill: #c084fc; }
+    </style>
+    <filter id="shadow-hssh" x="-4%" y="-4%" width="108%" height="108%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <rect width="900" height="480" rx="14" fill="#090d16" />
+
+  <g filter="url(#shadow-hssh)">
+    <rect x="25" y="20" width="850" height="435" rx="10" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+    
+    <!-- Title bar -->
+    <path d="M 25 30 A 10 10 0 0 1 35 20 L 865 20 A 10 10 0 0 1 875 30 L 875 56 L 25 56 Z" fill="#161b22" />
+    <circle cx="50" cy="38" r="6" fill="#ff5f56" stroke="#e0443e" stroke-width="0.5"/>
+    <circle cx="68" cy="38" r="6" fill="#ffbd2e" stroke="#dea123" stroke-width="0.5"/>
+    <circle cx="86" cy="38" r="6" fill="#27c93f" stroke="#1aab29" stroke-width="0.5"/>
+    <text x="450" y="42" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="500" fill="#8b949e">hssh — terminal</text>
+  </g>
+
+  <g class="term-text">
+    <!-- Command Prompt -->
+    <text x="50" y="88"><tspan class="green-bold">➜</tspan> <tspan class="cyan-bold">~</tspan> <tspan class="white-bold">hssh list</tspan></text>
+
+    <!-- Banner -->
+    <text x="50" y="118" class="cyan-bold">  _               _     </text>
+    <text x="50" y="136" class="cyan-bold"> | |__  ___  ___ | |__  </text>
+    <text x="50" y="154" class="cyan-bold"> | '_ \/ __|/ __|| '_ \ </text>
+    <text x="50" y="172" class="cyan-bold"> | | | \__ \\__ \| | | |</text>
+    <text x="50" y="190" class="cyan-bold"> |_| |_|___/|___/|_| |_|</text>
+    <text x="50" y="210" class="gray">  Fast &amp; Seamless OpenSSH Connection Manager</text>
+
+    <!-- Table Header -->
+    <text x="50" y="244" class="white-bold">Configured SSH Hosts:</text>
+    <text x="50" y="260" class="gray">========================================================================================</text>
+    <text x="50" y="278" class="white-bold">ALIAS              STATUS       HOSTNAME / IP          USER         PORT   TAGS</text>
+    <text x="50" y="294" class="gray">----------------------------------------------------------------------------------------</text>
+
+    <!-- Row 1 -->
+    <text x="50" y="316">
+      <tspan class="green-bold">prod-api          </tspan>
+      <tspan class="green">● 12ms      </tspan>
+      <tspan>103.20.10.42           </tspan>
+      <tspan>deploy       </tspan>
+      <tspan>22     </tspan>
+      <tspan class="purple">prod,api</tspan>
+    </text>
+
+    <!-- Row 2 -->
+    <text x="50" y="338">
+      <tspan class="green-bold">staging-db        </tspan>
+      <tspan class="green">● 38ms      </tspan>
+      <tspan>192.168.10.15          </tspan>
+      <tspan>postgres     </tspan>
+      <tspan>5432   </tspan>
+      <tspan class="purple">staging</tspan>
+    </text>
+
+    <!-- Row 3 -->
+    <text x="50" y="360">
+      <tspan class="green-bold">homelab-k8s       </tspan>
+      <tspan class="green">● 2ms       </tspan>
+      <tspan>10.0.0.120             </tspan>
+      <tspan>ubuntu       </tspan>
+      <tspan>22     </tspan>
+      <tspan class="purple">homelab</tspan>
+    </text>
+
+    <!-- Row 4 -->
+    <text x="50" y="382">
+      <tspan class="green-bold">backup-nas        </tspan>
+      <tspan class="red">○ Down      </tspan>
+      <tspan>192.168.1.99           </tspan>
+      <tspan>admin        </tspan>
+      <tspan>2222   </tspan>
+      <tspan class="purple">storage</tspan>
+    </text>
+
+    <text x="50" y="400" class="gray">========================================================================================</text>
+
+    <!-- Connect prompt -->
+    <text x="50" y="428"><tspan class="green-bold">➜</tspan> <tspan class="cyan-bold">~</tspan> <tspan class="white-bold">hssh prod-api</tspan></text>
+  </g>
+</svg>

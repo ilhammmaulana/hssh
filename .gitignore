@@ -1,0 +1,19 @@
+# Compiled binaries
+dist/
+bin/
+hssh
+hssh.exe
+*.exe
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+.vscode/
+
+# Temporary & backup files
+*.bak
+*.bak.*
+*.tmp

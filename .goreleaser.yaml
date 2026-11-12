@@ -1,0 +1,63 @@
+version: 2
+
+project_name: hssh
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: hssh
+    dir: src
+    main: .
+    binary: hssh
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+nfpms:
+  - id: packages
+    package_name: hssh
+    vendor: Ilham Maulana
+    homepage: https://ilhammmaulana.github.io/hssh/
+    maintainer: Ilham Maulana <ilham@example.com>
+    description: Fast & Seamless OpenSSH Connection Manager
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - src: README.md
+        dst: /usr/share/doc/hssh/README.md
+      - src: LICENSE
+        dst: /usr/share/doc/hssh/copyright
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

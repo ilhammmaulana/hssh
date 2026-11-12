@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;display=swap');
+      .term-text { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 13.5px; fill: #d1d5db; }
+      .cyan-bold { fill: #38bdf8; font-weight: 700; }
+      .green-bold { fill: #4ade80; font-weight: 700; }
+      .yellow-bold { fill: #facc15; font-weight: 700; }
+      .red-bold { fill: #f87171; font-weight: 700; }
+      .gray { fill: #6b7280; }
+      .white-bold { fill: #ffffff; font-weight: 700; }
+      .green { fill: #4ade80; }
+      .yellow { fill: #facc15; }
+      .red { fill: #f87171; }
+      .purple { fill: #c084fc; }
+    </style>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="520" rx="16" fill="#0d1117" />
+
+  <!-- Terminal Window -->
+  <g filter="url(#shadow)">
+    <rect x="25" y="20" width="850" height="475" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1.2"/>
+    
+    <!-- Title bar -->
+    <path d="M 25 30 A 10 10 0 0 1 35 20 L 865 20 A 10 10 0 0 1 875 30 L 875 58 L 25 58 Z" fill="#21262d" />
+    <circle cx="50" cy="39" r="6.5" fill="#ff5f56" stroke="#e0443e" stroke-width="0.5"/>
+    <circle cx="70" cy="39" r="6.5" fill="#ffbd2e" stroke="#dea123" stroke-width="0.5"/>
+    <circle cx="90" cy="39" r="6.5" fill="#27c93f" stroke="#1aab29" stroke-width="0.5"/>
+    <text x="450" y="44" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#8b949e">god-ssh — terminal@localhost</text>
+  </g>
+
+  <!-- Terminal Content -->
+  <g class="term-text">
+    <!-- Command Prompt -->
+    <text x="50" y="90"><tspan class="green-bold">➜</tspan> <tspan class="cyan-bold">~</tspan> <tspan class="white-bold">god-ssh list</tspan></text>
+
+    <!-- Banner -->
+    <text x="50" y="120" class="cyan-bold">   ____   ___  ____       ____ ____  _   _ </text>
+    <text x="50" y="138" class="cyan-bold">  / ___| / _ \|  _ \     / ___/ ___|| | | |</text>
+    <text x="50" y="156" class="cyan-bold"> | |  _ | | | | | | |____\___ \___ \| |_| |</text>
+    <text x="50" y="174" class="cyan-bold"> | |_| || |_| | |_| |_____|___) |__) |  _  |</text>
+    <text x="50" y="192" class="cyan-bold">  \____| \___/|____/     |____/____/|_| |_|</text>
+    <text x="50" y="214" class="gray">  High-Performance Passwordless SSH Manager (Go Edition)</text>
+
+    <!-- Table Header -->
+    <text x="50" y="248" class="white-bold">Configured SSH Hosts:</text>
+    <text x="50" y="266" class="gray">========================================================================================</text>
+    <text x="50" y="284" class="white-bold">ALIAS              STATUS       HOSTNAME / IP          USER         PORT   TAGS</text>
+    <text x="50" y="302" class="gray">----------------------------------------------------------------------------------------</text>
+
+    <!-- Row 1 -->
+    <text x="50" y="324">
+      <tspan class="green-bold">prod-api          </tspan>
+      <tspan class="green">● 12ms      </tspan>
+      <tspan>103.20.10.42           </tspan>
+      <tspan>deploy       </tspan>
+      <tspan>22     </tspan>
+      <tspan class="purple">prod,api</tspan>
+    </text>
+
+    <!-- Row 2 -->
+    <text x="50" y="348">
+      <tspan class="green-bold">staging-db        </tspan>
+      <tspan class="green">● 38ms      </tspan>
+      <tspan>192.168.10.15          </tspan>
+      <tspan>postgres     </tspan>
+      <tspan>5432   </tspan>
+      <tspan class="purple">staging</tspan>
+    </text>
+
+    <!-- Row 3 -->
+    <text x="50" y="372">
+      <tspan class="green-bold">homelab-k8s       </tspan>
+      <tspan class="green">● 2ms       </tspan>
+      <tspan>10.0.0.120             </tspan>
+      <tspan>ubuntu       </tspan>
+      <tspan>22     </tspan>
+      <tspan class="purple">homelab</tspan>
+    </text>
+
+    <!-- Row 4 -->
+    <text x="50" y="396">
+      <tspan class="green-bold">backup-nas        </tspan>
+      <tspan class="red">○ Down      </tspan>
+      <tspan>192.168.1.99           </tspan>
+      <tspan>admin        </tspan>
+      <tspan>2222   </tspan>
+      <tspan class="purple">storage</tspan>
+    </text>
+
+    <text x="50" y="416" class="gray">========================================================================================</text>
+
+    <!-- Connect prompt -->
+    <text x="50" y="448"><tspan class="green-bold">➜</tspan> <tspan class="cyan-bold">~</tspan> <tspan class="white-bold">god-ssh prod-api</tspan></text>
+    <text x="50" y="470" class="green">Connecting to prod-api (deploy@103.20.10.42:22)...</text>
+  </g>
+</svg>

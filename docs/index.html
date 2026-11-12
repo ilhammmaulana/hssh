@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSSH — Fast OpenSSH Connection Manager &amp; Host Dashboard</title>
+  <meta name="description" content="High-speed OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication for Linux, macOS, and Windows. Single static binary, zero runtime dependencies.">
+  <meta name="keywords" content="ssh, openssh, ssh config, passwordless ssh, ed25519, sysadmin, devops, linux, macos, windows openssh, terminal tool, cli">
+  <meta name="author" content="Ilham Maulana">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://ilhammmaulana.github.io/hssh/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ilhammmaulana.github.io/hssh/">
+  <meta property="og:site_name" content="HSSH">
+  <meta property="og:title" content="HSSH — Fast OpenSSH Connection Manager">
+  <meta property="og:description" content="Configure host aliases, run parallel latency checks, and deploy ed25519 key authentication without retyping passwords or memorizing IP addresses.">
+  <meta property="og:image" content="https://ilhammmaulana.github.io/hssh/assets/hssh-preview.svg">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://ilhammmaulana.github.io/hssh/">
+  <meta name="twitter:title" content="HSSH — Fast OpenSSH Connection Manager">
+  <meta name="twitter:description" content="High-performance, zero-dependency OpenSSH companion for Linux, macOS, and Windows.">
+  <meta name="twitter:image" content="https://ilhammmaulana.github.io/hssh/assets/hssh-preview.svg">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "HSSH",
+    "operatingSystem": "Linux, macOS, Windows",
+    "applicationCategory": "DeveloperApplication",
+    "applicationSubCategory": "Command Line Tool",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "High-performance, single-binary OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication.",
+    "softwareVersion": "1.0.0",
+    "author": {
+      "@type": "Person",
+      "name": "Ilham Maulana"
+    },
+    "downloadUrl": "https://github.com/ilhammmaulana/hssh/releases"
+  }
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            surface: {
+              950: '#070a0f',
+              900: '#0c1017',
+              850: '#111722',
+              800: '#192231',
+              700: '#233045',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    pre code { font-family: 'JetBrains Mono', monospace; }
+    ::selection { background: #0284c7; color: #ffffff; }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-200 font-sans antialiased min-h-screen">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-50 bg-surface-950/85 backdrop-blur-md border-b border-surface-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-md bg-sky-500/10 border border-sky-500/30 flex items-center justify-center font-mono font-bold text-sky-400 text-sm">
+          #
+        </div>
+        <span class="text-lg font-bold tracking-tight text-white font-mono">HSSH</span>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-7 text-sm font-medium text-slate-300">
+        <a href="#install" class="hover:text-white transition">Installation</a>
+        <a href="#quickstart" class="hover:text-white transition">Quickstart</a>
+        <a href="#commands" class="hover:text-white transition">Commands</a>
+        <a href="#security" class="hover:text-white transition">Security</a>
+        <a href="#docs" class="hover:text-white transition">Docs</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/ilhammmaulana/hssh" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-surface-700 bg-surface-900 hover:bg-surface-850 hover:border-slate-500 text-xs font-medium text-slate-200 transition">
+          <!-- Official GitHub Octocat Logo -->
+          <svg class="w-4 h-4 text-slate-200 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section (Clean, Anti-Slop, Typographic) -->
+  <section class="pt-16 pb-12 border-b border-surface-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      <h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+        OpenSSH host management, simplified.
+      </h1>
+      <p class="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        Configure host aliases, run parallel latency checks, and deploy ed25519 key authentication without retyping passwords or memorizing IP addresses.
+      </p>
+
+      <!-- Clean Terminal Command Box -->
+      <div class="mt-8 max-w-xl mx-auto text-left">
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between shadow-lg">
+          <div class="flex items-center space-x-2 font-mono text-xs sm:text-sm text-slate-300 overflow-x-auto py-1">
+            <span class="text-emerald-400 select-none">$</span>
+            <span id="hero-install-cmd">curl -fsSL https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.sh | bash</span>
+          </div>
+          <button onclick="copySnippet('hero-install-cmd', this)" class="ml-3 px-2.5 py-1.5 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0 flex items-center gap-1.5" title="Copy to clipboard">
+            <!-- Heroicon: ClipboardDocument -->
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.849A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.599m7.332 0c.055.194.084.4.084.615v0a.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75v0c0-.215.03-.421.084-.615m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Real Terminal Render -->
+      <div class="mt-10 rounded-lg border border-surface-800 bg-surface-900 shadow-2xl overflow-hidden text-left">
+        <div class="bg-surface-850 px-4 py-2.5 border-b border-surface-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+          </div>
+          <span class="text-xs font-mono text-slate-400">hssh list</span>
+          <span class="w-12"></span>
+        </div>
+        <div class="p-4 sm:p-6 font-mono text-xs sm:text-sm text-slate-300 leading-relaxed overflow-x-auto">
+          <div class="text-slate-400">$ hssh list</div>
+          <div class="text-sky-400 font-bold mt-2">  _               _     </div>
+          <div class="text-sky-400 font-bold"> | |__  ___  ___ | |__  </div>
+          <div class="text-sky-400 font-bold"> | '_ \/ __|/ __|| '_ \ </div>
+          <div class="text-sky-400 font-bold"> | | | \__ \\__ \| | | |</div>
+          <div class="text-sky-400 font-bold"> |_| |_|___/|___/|_| |_|</div>
+          <div class="text-slate-400">  Fast &amp; Seamless OpenSSH Connection Manager</div>
+          <div class="text-slate-400 mt-3 font-semibold text-white">Configured SSH Hosts:</div>
+          <div class="text-slate-600">========================================================================================</div>
+          <div class="text-slate-300 font-semibold">ALIAS              STATUS       HOSTNAME / IP          USER         PORT   TAGS</div>
+          <div class="text-slate-600">----------------------------------------------------------------------------------------</div>
+          <div><span class="text-emerald-400 font-bold">prod-api</span>          <span class="text-emerald-400">● 12ms</span>       103.20.10.42           deploy       22     <span class="text-purple-400">prod,api</span></div>
+          <div><span class="text-emerald-400 font-bold">staging-db</span>        <span class="text-emerald-400">● 38ms</span>       192.168.10.15          postgres     5432   <span class="text-purple-400">staging</span></div>
+          <div><span class="text-emerald-400 font-bold">homelab-k8s</span>       <span class="text-emerald-400">● 2ms</span>        10.0.0.120             ubuntu       22     <span class="text-purple-400">homelab</span></div>
+          <div><span class="text-emerald-400 font-bold">backup-nas</span>        <span class="text-rose-400">○ Down</span>       192.168.1.99           admin        2222   <span class="text-purple-400">storage</span></div>
+          <div class="text-slate-600">========================================================================================</div>
+          <div class="mt-3 text-slate-400">$ hssh prod-api</div>
+          <div class="text-emerald-400">Connecting to prod-api (deploy@103.20.10.42:22)...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multi-Platform Installation -->
+  <section id="install" class="py-14 border-b border-surface-800 bg-surface-900/30">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-surface-800 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">Installation</h2>
+          <p class="text-sm text-slate-400 mt-1">Single static binary compiled for all major operating systems.</p>
+        </div>
+
+        <!-- Platform Tabs -->
+        <div class="inline-flex p-1 bg-surface-900 border border-surface-800 rounded-lg self-start">
+          <button onclick="selectPlatform('linux')" id="btn-linux" class="platform-tab px-3.5 py-1.5 rounded-md text-xs font-semibold bg-surface-800 text-white transition flex items-center gap-1.5">
+            <!-- Heroicon: CommandLine -->
+            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 3-3 3m4.5 0h6m-13.5-9h15A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H3.75A2.25 2.25 0 011.5 17.25V6.75A2.25 2.25 0 013.75 4.5z"/></svg>
+            Linux
+          </button>
+          <button onclick="selectPlatform('macos')" id="btn-macos" class="platform-tab px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+            <!-- Heroicon: DevicePhoneMobile / Apple -->
+            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
+            macOS
+          </button>
+          <button onclick="selectPlatform('windows')" id="btn-windows" class="platform-tab px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+            <!-- Heroicon: Square2Stack -->
+            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m-15 0a2.246 2.246 0 00-.75 1.622v7.5A2.25 2.25 0 006 21.75h12a2.25 2.25 0 002.25-2.25v-7.5c0-.62-.25-1.18-.75-1.622m-13.5 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128"/></svg>
+            Windows
+          </button>
+          <button onclick="selectPlatform('go')" id="btn-go" class="platform-tab px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+            <!-- Heroicon: WrenchScrewdriver -->
+            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.162 1.157-.14 1.745.143 1.05.508 1.488 1.776.98 2.825l-.26.541m-1.745-.143l-2.496 3.03"/></svg>
+            Go Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Linux Pane -->
+      <div id="pane-linux" class="platform-pane pt-6 space-y-4">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-mono uppercase text-slate-400">Method 1: Universal Shell Script</span>
+            <span class="text-xs font-mono text-emerald-400 font-medium">Recommended</span>
+          </div>
+          <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between">
+            <code id="cmd-linux" class="text-xs sm:text-sm font-mono text-slate-200">curl -fsSL https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.sh | bash</code>
+            <button onclick="copySnippet('cmd-linux', this)" class="ml-3 px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0">Copy</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-xs font-mono uppercase text-slate-400 block mb-1.5">Method 2: Ubuntu / Debian APT Repository</span>
+          <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between">
+            <code id="cmd-apt" class="text-xs sm:text-sm font-mono text-slate-200">curl -sS https://ilhammmaulana.github.io/hssh/apt/KEY.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/hssh.gpg && echo "deb [arch=amd64,arm64] https://ilhammmaulana.github.io/hssh/apt stable main" | sudo tee /etc/apt/sources.list.d/hssh.list && sudo apt update && sudo apt install hssh</code>
+            <button onclick="copySnippet('cmd-apt', this)" class="ml-3 px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0">Copy</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-xs font-mono uppercase text-slate-400 block mb-1.5">Method 3: Direct .deb Package Download</span>
+          <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between">
+            <code id="cmd-deb" class="text-xs sm:text-sm font-mono text-slate-200">curl -LO https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_linux_amd64.deb && sudo apt install ./hssh_linux_amd64.deb</code>
+            <button onclick="copySnippet('cmd-deb', this)" class="ml-3 px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- macOS Pane -->
+      <div id="pane-macos" class="platform-pane hidden pt-6">
+        <p class="text-xs font-mono uppercase text-slate-400 mb-2">Terminal Installer (Apple Silicon M1/M2/M3/M4 &amp; Intel):</p>
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between">
+          <code id="cmd-macos" class="text-xs sm:text-sm font-mono text-slate-200">curl -fsSL https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.sh | bash</code>
+          <button onclick="copySnippet('cmd-macos', this)" class="ml-3 px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0">Copy</button>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">Auto-detects Darwin architecture and sets up native permissions.</p>
+      </div>
+
+      <!-- Windows Pane -->
+      <div id="pane-windows" class="platform-pane hidden pt-6">
+        <p class="text-xs font-mono uppercase text-slate-400 mb-2">PowerShell One-Liner (Run as standard user):</p>
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between">
+          <code id="cmd-win" class="text-xs sm:text-sm font-mono text-slate-200">irm https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.ps1 | iex</code>
+          <button onclick="copySnippet('cmd-win', this)" class="ml-3 px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0">Copy</button>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">Installs <code class="text-slate-300">hssh.exe</code> to <code class="text-slate-300">$HOME\bin</code> and registers it in User PATH.</p>
+      </div>
+
+      <!-- Go Install Pane -->
+      <div id="pane-go" class="platform-pane hidden pt-6">
+        <p class="text-xs font-mono uppercase text-slate-400 mb-2">Compile directly from Go repository:</p>
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-3 flex items-center justify-between">
+          <code id="cmd-go" class="text-xs sm:text-sm font-mono text-slate-200">go install github.com/ilhammmaulana/hssh@latest</code>
+          <button onclick="copySnippet('cmd-go', this)" class="ml-3 px-2 py-1 rounded bg-surface-800 hover:bg-surface-700 text-xs font-mono text-slate-300 transition shrink-0">Copy</button>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">Requires Go 1.22+ installed on your host system.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quickstart Walkthrough -->
+  <section id="quickstart" class="py-14 border-b border-surface-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <h2 class="text-xl font-bold text-white mb-2">Quickstart</h2>
+      <p class="text-sm text-slate-400 mb-8">Set up your first host and passwordless access in three steps.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Step 1 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div class="flex items-center space-x-2 text-xs font-mono text-sky-400 mb-3">
+            <!-- Heroicon: CommandLine -->
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 3-3 3m4.5 0h6m-13.5-9h15A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H3.75A2.25 2.25 0 011.5 17.25V6.75A2.25 2.25 0 013.75 4.5z"/></svg>
+            <span>STEP 01</span>
+          </div>
+          <h3 class="text-sm font-semibold text-white mb-2">Launch Dashboard</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">Run the executable without flags to enter the interactive TUI menu.</p>
+          <pre class="bg-surface-950 p-2.5 rounded border border-surface-800 text-xs font-mono text-slate-300"><code>hssh</code></pre>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div class="flex items-center space-x-2 text-xs font-mono text-sky-400 mb-3">
+            <!-- Heroicon: Key -->
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+            <span>STEP 02</span>
+          </div>
+          <h3 class="text-sm font-semibold text-white mb-2">Add Server</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">Pass alias, IP, username, and port. Generates key and copies automatically.</p>
+          <pre class="bg-surface-950 p-2.5 rounded border border-surface-800 text-xs font-mono text-slate-300 overflow-x-auto"><code>hssh add prod 103.20.10.42 deploy 22</code></pre>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex flex-col justify-between bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div>
+            <div class="flex items-center space-x-2 text-xs font-mono text-sky-400 mb-3">
+              <!-- Heroicon: ArrowRight -->
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+              <span>STEP 03</span>
+            </div>
+            <h3 class="text-sm font-semibold text-white mb-2">Connect</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-3">Connect directly using the alias without retyping passwords or host addresses.</p>
+          </div>
+          <pre class="bg-surface-950 p-2.5 rounded border border-surface-800 text-xs font-mono text-emerald-400"><code>hssh prod</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commands Table Reference -->
+  <section id="commands" class="py-14 border-b border-surface-800 bg-surface-900/30">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <h2 class="text-xl font-bold text-white mb-2">Command Reference</h2>
+      <p class="text-sm text-slate-400 mb-6">Overview of all available subcommands and flags.</p>
+
+      <div class="overflow-x-auto border border-surface-800 rounded-lg">
+        <table class="w-full text-left text-xs sm:text-sm">
+          <thead class="bg-surface-850 text-slate-400 font-mono text-xs border-b border-surface-800">
+            <tr>
+              <th class="p-3 font-semibold">Command</th>
+              <th class="p-3 font-semibold">Arguments</th>
+              <th class="p-3 font-semibold">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-800 font-mono text-xs">
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh</td>
+              <td class="p-3 text-slate-500">—</td>
+              <td class="p-3 text-slate-300 font-sans">Opens interactive terminal management dashboard.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh list</td>
+              <td class="p-3 text-slate-500">—</td>
+              <td class="p-3 text-slate-300 font-sans">Lists all configured servers with concurrent TCP ping latency.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh list-fast</td>
+              <td class="p-3 text-slate-500">—</td>
+              <td class="p-3 text-slate-300 font-sans">Immediate host table listing without executing network ping checks.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh &lt;alias&gt;</td>
+              <td class="p-3 text-slate-400">&lt;alias&gt;</td>
+              <td class="p-3 text-slate-300 font-sans">Direct connection shortcut to target server.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh add</td>
+              <td class="p-3 text-slate-400">[alias] [ip] [user] [port]</td>
+              <td class="p-3 text-slate-300 font-sans">Adds new host and initiates key generation/copying.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh ping</td>
+              <td class="p-3 text-slate-400">[alias]</td>
+              <td class="p-3 text-slate-300 font-sans">Runs round-trip TCP dial to measure server port latency.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh test</td>
+              <td class="p-3 text-slate-400">[alias]</td>
+              <td class="p-3 text-slate-300 font-sans">Validates passwordless login status in non-interactive batch mode.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh edit</td>
+              <td class="p-3 text-slate-400">[alias]</td>
+              <td class="p-3 text-slate-300 font-sans">Interactively updates host IP, username, port, or environment tags.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh copy-key</td>
+              <td class="p-3 text-slate-400">[alias]</td>
+              <td class="p-3 text-slate-300 font-sans">Copies public key to target machine with universal fallback piping.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh backup</td>
+              <td class="p-3 text-slate-500">—</td>
+              <td class="p-3 text-slate-300 font-sans">Creates manual timestamped snapshot of <code class="text-slate-400">~/.ssh/config</code>.</td>
+            </tr>
+            <tr class="hover:bg-surface-850/50">
+              <td class="p-3 text-sky-400 font-semibold">hssh remove</td>
+              <td class="p-3 text-slate-400">[alias]</td>
+              <td class="p-3 text-slate-300 font-sans">Safely removes entry with automated pre-delete backup.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Model (Clear & Technical) -->
+  <section id="security" class="py-14 border-b border-surface-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <h2 class="text-xl font-bold text-white mb-2">Security Specifications</h2>
+      <p class="text-sm text-slate-400 mb-8">How HSSH handles cryptographic keys, permissions, and network boundaries.</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <!-- Item 1 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div class="flex items-center space-x-2 text-emerald-400 mb-2">
+            <!-- Heroicon: ShieldCheck -->
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+            <h3 class="text-sm font-semibold text-white">One-Way Authentication</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Only public keys (<code class="text-slate-300">id_ed25519.pub</code>) are ever sent to remote hosts. Private keys remain exclusively on your local workstation. Possessing a public key gives the remote server zero capability to connect back or reverse-authenticate into your machine.
+          </p>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div class="flex items-center space-x-2 text-emerald-400 mb-2">
+            <!-- Heroicon: LockClosed -->
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+            <h3 class="text-sm font-semibold text-white">Strict Local Permissions</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            HSSH enforces POSIX file permission standards on all operations: <code class="text-slate-300">0700</code> on <code class="text-slate-300">~/.ssh</code> directory, and <code class="text-slate-300">0600</code> on <code class="text-slate-300">~/.ssh/config</code> and private keys, preventing unauthorized read access by other local processes.
+          </p>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div class="flex items-center space-x-2 text-emerald-400 mb-2">
+            <!-- Heroicon: DocumentDuplicate -->
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/></svg>
+            <h3 class="text-sm font-semibold text-white">Pre-Write Safety Backups</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Prior to modifying or deleting records, HSSH clones <code class="text-slate-300">~/.ssh/config</code> to a timestamped backup (<code class="text-slate-300">~/.ssh/config.bak.&lt;timestamp&gt;</code>) preventing accidental data corruption or loss.
+          </p>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <div class="flex items-center space-x-2 text-emerald-400 mb-2">
+            <!-- Heroicon: Server -->
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.75 5.1a3 3 0 012.4-1.35h7.7a3 3 0 012.4 1.35l2.6 3.45a4.5 4.5 0 01.9 2.7m-19.5 0a4.5 4.5 0 00.9 2.7l2.6 3.45a3 3 0 002.4 1.35h7.7a3 3 0 002.4-1.35l2.6-3.45a4.5 4.5 0 00.9-2.7"/></svg>
+            <h3 class="text-sm font-semibold text-white">Standard OpenSSH File Format</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            No proprietary database formats or hidden state. All host directives are stored natively in standard OpenSSH syntax. Standard terminal tools, VS Code SSH plugins, and Ansible continue working transparently.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Complete Documentation Section -->
+  <section id="docs" class="py-14">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <h2 class="text-xl font-bold text-white mb-2">Technical Documentation</h2>
+      <p class="text-sm text-slate-400 mb-8">Detailed guidance for developers and systems engineers.</p>
+
+      <div class="space-y-6 text-sm text-slate-300 leading-relaxed">
+        <!-- Topic 1 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <h3 class="text-sm font-bold text-white mb-2">Windows OpenSSH Environment Handling</h3>
+          <p class="text-xs text-slate-400 mb-3">
+            On Windows 10/11, native OpenSSH is stored in <code class="text-slate-300">C:\Windows\System32\OpenSSH\ssh.exe</code>. While Linux distributions ship with <code class="text-slate-300">ssh-copy-id</code>, Windows does not.
+          </p>
+          <p class="text-xs text-slate-400">
+            HSSH solves this by detecting the runtime environment. On Windows, it executes key installation directly via an authenticated SSH sub-shell:
+          </p>
+          <pre class="bg-surface-950 p-3 rounded border border-surface-800 text-xs font-mono text-slate-300 mt-2 overflow-x-auto"><code>ssh -p 22 user@host "mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; echo '&lt;pubkey&gt;' &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys"</code></pre>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <h3 class="text-sm font-bold text-white mb-2">TCP Latency Measurement</h3>
+          <p class="text-xs text-slate-400 mb-2">
+            When executing <code class="text-slate-300">hssh list</code>, HSSH launches concurrent goroutines across each configured entry to perform a fast non-blocking TCP socket dial:
+          </p>
+          <pre class="bg-surface-950 p-3 rounded border border-surface-800 text-xs font-mono text-slate-300 overflow-x-auto"><code>net.DialTimeout("tcp", net.JoinHostPort(host, port), 1200*time.Millisecond)</code></pre>
+          <p class="text-xs text-slate-400 mt-2">
+            This bypasses ICMP blocks frequently present in cloud environments (AWS Security Groups, DigitalOcean Firewalls) and verifies that the SSH port itself is accepting connections.
+          </p>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="bg-surface-900 border border-surface-800 rounded-lg p-5">
+          <h3 class="text-sm font-bold text-white mb-2">Tags and Environment Labels</h3>
+          <p class="text-xs text-slate-400 mb-2">
+            Tags are persisted safely inside <code class="text-slate-300">~/.ssh/config</code> as prefixed comments preceding each <code class="text-slate-300">Host</code> directive:
+          </p>
+          <pre class="bg-surface-950 p-3 rounded border border-surface-800 text-xs font-mono text-slate-300 overflow-x-auto"><code># tags: prod,api,backend
+Host prod-api
+    HostName 103.20.10.42
+    User deploy
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519</code></pre>
+          <p class="text-xs text-slate-400 mt-2">
+            This format ensures full compatibility with native OpenSSH parsers while allowing HSSH to categorize hosts across different clusters and environments.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-surface-800 py-8 bg-surface-950 text-xs text-slate-500">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="font-mono font-bold text-slate-300">HSSH</span>
+        <span>•</span>
+        <span>Open Source (MIT License)</span>
+      </div>
+      <div class="flex items-center space-x-6 text-slate-400">
+        <a href="https://github.com/ilhammmaulana/hssh" target="_blank" rel="noopener noreferrer" class="hover:text-white transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a href="#install" class="hover:text-white transition">Installation</a>
+        <a href="#commands" class="hover:text-white transition">Commands</a>
+        <a href="#docs" class="hover:text-white transition">Docs</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function selectPlatform(platform) {
+      document.querySelectorAll('.platform-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.platform-tab').forEach(el => {
+        el.classList.remove('bg-surface-800', 'text-white');
+        el.classList.add('text-slate-400');
+      });
+
+      const pane = document.getElementById('pane-' + platform);
+      const btn = document.getElementById('btn-' + platform);
+      if (pane) pane.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('bg-surface-800', 'text-white');
+        btn.classList.remove('text-slate-400');
+      }
+    }
+
+    function copySnippet(id, btn) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = `<span class="text-emerald-400 font-mono text-xs">Copied!</span>`;
+        setTimeout(() => {
+          btn.innerHTML = originalContent;
+        }, 1800);
+      });
+    }
+  </script>
+</body>
+</html>
