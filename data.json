@@ -5,7 +5,7 @@
     "title": "HSSH",
     "tagline": "Fast & Seamless OpenSSH Connection Manager",
     "description": "High-speed OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication for Linux, macOS, and Windows.",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "license": "MIT",
     "author": {
       "name": "Ilham Maulana",
@@ -23,8 +23,8 @@
     "linux": {
       "type": "shell",
       "command": "curl -fsSL https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.sh | bash",
-      "deb": "https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_1.0.2_linux_amd64.deb",
-      "rpm": "https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_1.0.2_linux_amd64.rpm"
+      "deb": "https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_1.0.3_linux_amd64.deb",
+      "rpm": "https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_1.0.3_linux_amd64.rpm"
     },
     "macos": {
       "type": "shell",
