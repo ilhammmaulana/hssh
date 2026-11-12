@@ -62,7 +62,10 @@ func LoadSSHConfig() (*SSHConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	return LoadSSHConfigFile(cfgPath)
+}
 
+func LoadSSHConfigFile(cfgPath string) (*SSHConfig, error) {
 	cfg := &SSHConfig{
 		FilePath: cfgPath,
 		Entries:  make([]*HostEntry, 0),
@@ -83,21 +86,59 @@ func LoadSSHConfig() (*SSHConfig, error) {
 		line := scanner.Text()
 		trimmed := strings.TrimSpace(line)
 
-		lowerTrimmed := strings.ToLower(trimmed)
-		if strings.HasPrefix(lowerTrimmed, "# label:") ||
-			strings.HasPrefix(lowerTrimmed, "# labels:") ||
-			strings.HasPrefix(lowerTrimmed, "# tags:") ||
-			strings.HasPrefix(lowerTrimmed, "# tag:") ||
-			strings.HasPrefix(lowerTrimmed, "# env:") ||
-			strings.HasPrefix(lowerTrimmed, "# description:") {
-			parts := strings.SplitN(trimmed, ":", 2)
-			if len(parts) == 2 {
-				pendingTags = strings.TrimSpace(parts[1])
+		// Check for label comments
+		if strings.HasPrefix(trimmed, "#") {
+			commentContent := strings.TrimSpace(strings.TrimPrefix(trimmed, "#"))
+			lowerComment := strings.ToLower(commentContent)
+
+			var extractedVal string
+			matched := false
+
+			prefixes := []string{
+				"label:", "labels:", "tag:", "tags:", "env:", "description:", "desc:",
+				"label ", "labels ", "tag ", "tags ", "env ",
+			}
+			for _, p := range prefixes {
+				if strings.HasPrefix(lowerComment, p) {
+					if strings.Contains(commentContent, ":") {
+						parts := strings.SplitN(commentContent, ":", 2)
+						if len(parts) == 2 {
+							extractedVal = strings.TrimSpace(parts[1])
+						}
+					} else {
+						spaceParts := strings.Fields(commentContent)
+						if len(spaceParts) >= 2 {
+							extractedVal = strings.Join(spaceParts[1:], " ")
+						}
+					}
+					matched = true
+					break
+				}
+			}
+
+			if matched {
+				isIndented := strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")
+				if isIndented && currentEntry != nil {
+					currentEntry.Tags = extractedVal
+				} else {
+					if currentEntry != nil {
+						cfg.Entries = append(cfg.Entries, currentEntry)
+						currentEntry = nil
+					}
+					pendingTags = extractedVal
+				}
+				continue
+			}
+
+			if currentEntry != nil {
+				currentEntry.RawLines = append(currentEntry.RawLines, line)
+			} else {
+				cfg.Globals = append(cfg.Globals, line)
 			}
 			continue
 		}
 
-		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+		if trimmed == "" {
 			if currentEntry != nil {
 				currentEntry.RawLines = append(currentEntry.RawLines, line)
 			} else {
@@ -141,6 +182,8 @@ func LoadSSHConfig() (*SSHConfig, error) {
 					currentEntry.Port = val
 				case "identityfile":
 					currentEntry.IdentityFile = val
+				case "tag", "tags", "label", "labels", "env":
+					currentEntry.Tags = val
 				default:
 					currentEntry.CustomOptions[key] = val
 				}

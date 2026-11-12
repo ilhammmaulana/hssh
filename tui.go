@@ -302,6 +302,7 @@ func (t *CtopTUI) execConnect(alias string, fd int, oldState *term.State) {
 
 func (t *CtopTUI) execEdit(alias string, fd int, oldState *term.State) {
 	t.restoreCooked(fd, oldState)
+	fmt.Print("\033[H\033[2J")
 	reader := bufio.NewReader(os.Stdin)
 	cmdEdit(t.Config, reader, alias)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
@@ -311,6 +312,7 @@ func (t *CtopTUI) execEdit(alias string, fd int, oldState *term.State) {
 
 func (t *CtopTUI) execDelete(alias string, fd int, oldState *term.State) {
 	t.restoreCooked(fd, oldState)
+	fmt.Print("\033[H\033[2J")
 	reader := bufio.NewReader(os.Stdin)
 	cmdRemove(t.Config, reader, alias)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
@@ -320,6 +322,7 @@ func (t *CtopTUI) execDelete(alias string, fd int, oldState *term.State) {
 
 func (t *CtopTUI) execAdd(fd int, oldState *term.State) {
 	t.restoreCooked(fd, oldState)
+	fmt.Print("\033[H\033[2J")
 	reader := bufio.NewReader(os.Stdin)
 	cmdAdd(t.Config, reader, nil)
 	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
@@ -403,7 +406,7 @@ func (t *CtopTUI) Draw() {
 	b.WriteString(fmt.Sprintf("%s%s%s\r\n", ColorGray, strings.Repeat("─", ruleLen), ColorReset))
 
 	// Column Headers
-	b.WriteString(fmt.Sprintf("  %s%-18s %-12s %-22s %-12s %-6s %-12s%s\r\n",
+	b.WriteString(fmt.Sprintf("  %s%-18s %-12s %-22s %-12s %-6s %-16s%s\r\n",
 		ColorBold+ColorWhite, "ALIAS", "STATUS", "HOSTNAME / IP", "USER", "PORT", "LABEL", ColorReset))
 	b.WriteString(fmt.Sprintf("%s%s%s\r\n", ColorGray, strings.Repeat("─", ruleLen), ColorReset))
 
@@ -451,7 +454,7 @@ func (t *CtopTUI) Draw() {
 				aliasColor = ColorCyan + ColorBold
 			}
 
-			line := fmt.Sprintf("%s%s%-18s%s %-20s %-22s %-12s %-6s %s%-12s%s",
+			line := fmt.Sprintf("%s%s%-18s%s %-20s %-22s %-12s %-6s %s%-16s%s",
 				cursor,
 				aliasColor, e.Alias, ColorReset+rowColor,
 				statusStr,

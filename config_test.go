@@ -33,111 +33,84 @@ Host staging-web
 # env: dev
 Host local-dev
     HostName 127.0.0.1
+
+# Host with label defined INSIDE/AFTER host line
+Host internal-db
+    HostName 10.0.0.3
+    # label: database,cluster
+    User postgres
+
+# Host with OpenSSH Tag directive
+Host tagged-redis
+    HostName 10.0.0.4
+    Tag cache,redis
+    User redis
+
+# Host with OpenSSH Label directive
+Host labeled-queue
+    HostName 10.0.0.5
+    Label rabbitmq
+    User queue
+
+# Host with space-separated comment and extra spaces
+#   label worker,background
+Host worker-job
+    HostName 10.0.0.6
 `
 	testConfigFile := filepath.Join(tempDir, "config")
 	if err := os.WriteFile(testConfigFile, []byte(configContent), 0600); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
 
-	// Read file using scanner logic
-	cfg := &SSHConfig{
-		FilePath: testConfigFile,
-		Entries:  make([]*HostEntry, 0),
-		Globals:  make([]string, 0),
-	}
-
-	f, err := os.Open(testConfigFile)
+	cfg, err := LoadSSHConfigFile(testConfigFile)
 	if err != nil {
-		t.Fatalf("Failed to open test config: %v", err)
-	}
-	defer f.Close()
-
-	// Parse using existing logic
-	var currentEntry *HostEntry
-	var pendingTags string
-
-	scanner := bufioNewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		trimmed := strings.TrimSpace(line)
-
-		lowerTrimmed := strings.ToLower(trimmed)
-		if strings.HasPrefix(lowerTrimmed, "# label:") ||
-			strings.HasPrefix(lowerTrimmed, "# labels:") ||
-			strings.HasPrefix(lowerTrimmed, "# tags:") ||
-			strings.HasPrefix(lowerTrimmed, "# tag:") ||
-			strings.HasPrefix(lowerTrimmed, "# env:") ||
-			strings.HasPrefix(lowerTrimmed, "# description:") {
-			parts := strings.SplitN(trimmed, ":", 2)
-			if len(parts) == 2 {
-				pendingTags = strings.TrimSpace(parts[1])
-			}
-			continue
-		}
-
-		if strings.HasPrefix(lowerTrimmed, "host ") {
-			parts := strings.Fields(trimmed)
-			if len(parts) >= 2 {
-				alias := parts[1]
-				if alias == "*" {
-					cfg.Globals = append(cfg.Globals, line)
-					currentEntry = nil
-					continue
-				}
-
-				currentEntry = &HostEntry{
-					Alias:         alias,
-					Port:          "22",
-					Tags:          pendingTags,
-					CustomOptions: make(map[string]string),
-					RawLines:      make([]string, 0),
-				}
-				pendingTags = ""
-				cfg.Entries = append(cfg.Entries, currentEntry)
-				continue
-			}
-		}
-
-		if currentEntry != nil {
-			currentEntry.RawLines = append(currentEntry.RawLines, line)
-			parts := strings.Fields(trimmed)
-			if len(parts) >= 2 {
-				key := strings.ToLower(parts[0])
-				val := strings.Join(parts[1:], " ")
-				switch key {
-				case "hostname":
-					currentEntry.HostName = val
-				case "user":
-					currentEntry.User = val
-				case "port":
-					currentEntry.Port = val
-				case "identityfile":
-					currentEntry.IdentityFile = val
-				default:
-					currentEntry.CustomOptions[parts[0]] = val
-				}
-			}
-		}
+		t.Fatalf("LoadSSHConfigFile failed: %v", err)
 	}
 
-	if len(cfg.Entries) != 3 {
-		t.Fatalf("Expected 3 entries, got %d", len(cfg.Entries))
+	if len(cfg.Entries) != 7 {
+		t.Fatalf("Expected 7 entries, got %d", len(cfg.Entries))
 	}
 
-	// Verify entries and their labels
+	// 1. Label before Host
 	prod := cfg.Find("production-api")
 	if prod == nil || prod.Tags != "prod,api" {
 		t.Errorf("production-api tags mismatch: got %v, expected 'prod,api'", prod)
 	}
 
+	// 2. Tags before Host
 	staging := cfg.Find("staging-web")
 	if staging == nil || staging.Tags != "staging,web" {
 		t.Errorf("staging-web tags mismatch: got %v, expected 'staging,web'", staging)
 	}
 
+	// 3. Env before Host
 	dev := cfg.Find("local-dev")
 	if dev == nil || dev.Tags != "dev" {
 		t.Errorf("local-dev tags mismatch: got %v, expected 'dev'", dev)
+	}
+
+	// 4. Label INSIDE/AFTER Host line
+	db := cfg.Find("internal-db")
+	if db == nil || db.Tags != "database,cluster" {
+		t.Errorf("internal-db tags mismatch: got %v, expected 'database,cluster'", db)
+	}
+
+	// 5. Tag directive inside Host
+	redis := cfg.Find("tagged-redis")
+	if redis == nil || redis.Tags != "cache,redis" {
+		t.Errorf("tagged-redis tags mismatch: got %v, expected 'cache,redis'", redis)
+	}
+
+	// 6. Label directive inside Host
+	queue := cfg.Find("labeled-queue")
+	if queue == nil || queue.Tags != "rabbitmq" {
+		t.Errorf("labeled-queue tags mismatch: got %v, expected 'rabbitmq'", queue)
+	}
+
+	// 7. Space-separated label comment with extra spaces
+	worker := cfg.Find("worker-job")
+	if worker == nil || worker.Tags != "worker,background" {
+		t.Errorf("worker-job tags mismatch: got %v, expected 'worker,background'", worker)
 	}
 
 	// Test saving and re-parsing
@@ -155,36 +128,14 @@ Host local-dev
 	if !strings.Contains(savedStr, "# label: prod,cluster,v2") {
 		t.Errorf("Saved config does not contain updated label '# label: prod,cluster,v2':\n%s", savedStr)
 	}
-}
 
-func bufioNewScanner(f *os.File) *bufioScannerWrapper {
-	s := &bufioScannerWrapper{file: f}
-	return s
-}
-
-type bufioScannerWrapper struct {
-	file *os.File
-	lines []string
-	idx   int
-}
-
-func (b *bufioScannerWrapper) Scan() bool {
-	if b.lines == nil {
-		data, _ := os.ReadFile(b.file.Name())
-		content := strings.ReplaceAll(string(data), "\r\n", "\n")
-		b.lines = strings.Split(content, "\n")
-		b.idx = 0
+	// Reload saved config
+	reloadedCfg, err := LoadSSHConfigFile(testConfigFile)
+	if err != nil {
+		t.Fatalf("Failed to reload saved config: %v", err)
 	}
-	if b.idx < len(b.lines) {
-		b.idx++
-		return true
+	reloadedProd := reloadedCfg.Find("production-api")
+	if reloadedProd == nil || reloadedProd.Tags != "prod,cluster,v2" {
+		t.Errorf("Reloaded prod tags mismatch: got %v, expected 'prod,cluster,v2'", reloadedProd)
 	}
-	return false
-}
-
-func (b *bufioScannerWrapper) Text() string {
-	if b.idx > 0 && b.idx <= len(b.lines) {
-		return b.lines[b.idx-1]
-	}
-	return ""
 }

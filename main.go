@@ -35,7 +35,7 @@ func main() {
 	subargs := args[1:]
 
 	switch subcmd {
-	case "list", "ls", "-l":
+	case "list", "ls", "-l", "host", "hosts":
 		// If running in an interactive terminal without --plain, launch ctop-style TUI
 		if term.IsTerminal(int(os.Stdin.Fd())) && (len(subargs) == 0 || subargs[0] != "--plain") {
 			tui := NewCtopTUI(cfg)
@@ -176,7 +176,7 @@ func cmdList(cfg *SSHConfig, checkPing bool) {
 
 	fmt.Printf("\n%s%sConfigured SSH Hosts:%s\n", ColorBold, ColorWhite, ColorReset)
 	fmt.Printf("%s%s%s\n", ColorGray, strings.Repeat("=", 88), ColorReset)
-	fmt.Printf("%s%-18s %-12s %-22s %-12s %-6s %-12s%s\n",
+	fmt.Printf("%s%-18s %-12s %-22s %-12s %-6s %-16s%s\n",
 		ColorBold, "ALIAS", "STATUS", "HOSTNAME / IP", "USER", "PORT", "LABEL", ColorReset)
 	fmt.Printf("%s%s%s\n", ColorGray, strings.Repeat("-", 88), ColorReset)
 
@@ -206,7 +206,7 @@ func cmdList(cfg *SSHConfig, checkPing bool) {
 			tags = "-"
 		}
 
-		fmt.Printf("%s%-18s%s %-20s %-22s %-12s %-6s %s%-12s%s\n",
+		fmt.Printf("%s%-18s%s %-20s %-22s %-12s %-6s %s%-16s%s\n",
 			ColorGreen+ColorBold, e.Alias, ColorReset,
 			statusStr,
 			e.HostName,
@@ -321,10 +321,15 @@ func cmdConnect(cfg *SSHConfig, reader *bufio.Reader, target string) {
 	if target == "" {
 		fmt.Printf("\n%sSelect a server to connect:%s\n", ColorBold, ColorReset)
 		for i, e := range cfg.Entries {
-			fmt.Printf("  %s[%d]%s %s%s%s (%s@%s:%s)\n",
+			labelDisplay := ""
+			if e.Tags != "" {
+				labelDisplay = fmt.Sprintf(" %s[label: %s]%s", ColorGray, e.Tags, ColorReset)
+			}
+			fmt.Printf("  %s[%d]%s %s%s%s (%s@%s:%s)%s\n",
 				ColorCyan, i+1, ColorReset,
 				ColorBold, e.Alias, ColorReset,
-				e.User, e.HostName, e.Port)
+				e.User, e.HostName, e.Port,
+				labelDisplay)
 		}
 		fmt.Println()
 		choice := Prompt(reader, "Enter number or alias", "")
@@ -354,22 +359,17 @@ func cmdEdit(cfg *SSHConfig, reader *bufio.Reader, target string) {
 	}
 
 	if target == "" {
-		fmt.Printf("\n%sSelect a server to edit:%s\n", ColorBold, ColorReset)
-		for i, e := range cfg.Entries {
-			labelDisplay := e.Tags
-			if labelDisplay == "" {
-				labelDisplay = "none"
-			}
-			fmt.Printf("  %s[%d]%s %s (%s@%s:%s) %s[label: %s]%s\n",
-				ColorCyan, i+1, ColorReset,
-				e.Alias, e.User, e.HostName, e.Port,
-				ColorGray, labelDisplay, ColorReset)
+		defaultAlias := ""
+		if len(cfg.Entries) == 1 {
+			defaultAlias = cfg.Entries[0].Alias
 		}
-		choice := Prompt(reader, "Enter number or alias", "")
-		if num, err := strconv.Atoi(choice); err == nil && num >= 1 && num <= len(cfg.Entries) {
+		target = Prompt(reader, "Server alias to edit", defaultAlias)
+		for strings.TrimSpace(target) == "" {
+			fmt.Printf("%sPlease enter a server alias to edit!%s\n", ColorRed, ColorReset)
+			target = Prompt(reader, "Server alias to edit", defaultAlias)
+		}
+		if num, err := strconv.Atoi(target); err == nil && num >= 1 && num <= len(cfg.Entries) {
 			target = cfg.Entries[num-1].Alias
-		} else {
-			target = choice
 		}
 	}
 
@@ -379,8 +379,13 @@ func cmdEdit(cfg *SSHConfig, reader *bufio.Reader, target string) {
 		return
 	}
 
-	fmt.Printf("\n%sEditing Server: %s%s%s (press Enter to keep current value)%s\n",
-		ColorBold, ColorCyan, entry.Alias, ColorReset+ColorBold, ColorReset)
+	currLabel := entry.Tags
+	if currLabel == "" {
+		currLabel = "none"
+	}
+	fmt.Printf("\n%sEditing Server: %s%s%s %s[label: %s]%s (press Enter to keep current value)\n",
+		ColorBold, ColorCyan, entry.Alias, ColorReset+ColorBold,
+		ColorGray, currLabel, ColorReset)
 
 	// 1. Alias (cannot be empty)
 	newAlias := Prompt(reader, "Alias / Name", entry.Alias)
@@ -438,18 +443,22 @@ func cmdEdit(cfg *SSHConfig, reader *bufio.Reader, target string) {
 	cfg.AddOrUpdate(entry)
 	if err := cfg.Save(); err != nil {
 		fmt.Printf("%sFailed to save config: %v%s\n", ColorRed, err, ColorReset)
-	} else {
-		displayLabel := entry.Tags
-		if displayLabel == "" {
-			displayLabel = "none"
-		}
-		fmt.Printf("\n%s✓ Server [%s] successfully updated!%s\n", ColorGreen, newAlias, ColorReset)
-		fmt.Printf("  %sIP:%s %s  %sUser:%s %s  %sPort:%s %s  %sLabel:%s %s%s%s\n",
-			ColorGray, ColorReset, entry.HostName,
-			ColorGray, ColorReset, entry.User,
-			ColorGray, ColorReset, entry.Port,
-			ColorGray, ColorReset, ColorCyan, displayLabel, ColorReset)
+		return
 	}
+
+	displayLabel := entry.Tags
+	if displayLabel == "" {
+		displayLabel = "none"
+	}
+	fmt.Printf("\n%s✓ Server [%s] successfully updated!%s\n", ColorGreen, newAlias, ColorReset)
+	fmt.Printf("  %sIP:%s %s  %sUser:%s %s  %sPort:%s %s  %sLabel:%s %s%s%s\n\n",
+		ColorGray, ColorReset, entry.HostName,
+		ColorGray, ColorReset, entry.User,
+		ColorGray, ColorReset, entry.Port,
+		ColorGray, ColorReset, ColorCyan, displayLabel, ColorReset)
+
+	// Show the list again after edit
+	cmdList(cfg, false)
 }
 
 func cmdRemove(cfg *SSHConfig, reader *bufio.Reader, target string) {
