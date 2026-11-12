@@ -81,8 +81,9 @@ hssh prod-api
 
 | Command | Arguments | Description | Example |
 |---|---|---|---|
-| `hssh` | — | Interactive terminal management dashboard | `hssh` |
-| `hssh list` / `ls` | — | Lists servers with concurrent live TCP latency | `hssh ls` |
+| `hssh` | — | Launches interactive host dashboard (ctop-style) | `hssh` |
+| `hssh list` / `ls` | — | Interactive host table with live latency pings | `hssh ls` |
+| `hssh list-plain` / `lp` | — | Plain text table without TUI (script friendly) | `hssh lp` |
 | `hssh list-fast` / `lf` | — | Fast listing without network ping checks | `hssh lf` |
 | `hssh <alias>` | `<alias>` | Direct shortcut to launch SSH connection | `hssh prod-api` |
 | `hssh add` | `[alias] [ip] [user] [port]` | Adds new host & deploys passwordless key | `hssh add box 1.2.3.4 root 22` |
@@ -93,6 +94,24 @@ hssh prod-api
 | `hssh backup` | — | Manually creates timestamped snapshot of `~/.ssh/config` | `hssh backup` |
 | `hssh remove` / `rm` | `[alias]` | Safely removes server with automated backup | `hssh rm old-box` |
 | `hssh keygen` | — | Generates modern `ed25519` key pair | `hssh keygen` |
+
+---
+
+## 🎮 Interactive TUI Controls (ctop-style)
+
+When running `hssh` or `hssh list`:
+
+| Key | Action |
+|---|---|
+| **`↑ / ↓`** or **`k / j`** | Navigate between servers |
+| **`Enter`** | Open Host Actions Modal (**Connect**, **Edit**, **Delete**, **Copy Key**) |
+| **`c`** | Immediately connect via SSH |
+| **`e`** | Edit selected host configuration (IP, user, port, tags) |
+| **`d`** | Delete selected host entry |
+| **`k`** | Copy public key to remote host |
+| **`a`** | Add a new server |
+| **`r`** | Refresh parallel live latency checks |
+| **`q`** or **`Esc`** | Exit dashboard |
 
 ---
 

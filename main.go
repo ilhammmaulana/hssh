@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/term"
 )
 
 func main() {
@@ -20,7 +22,12 @@ func main() {
 
 	args := os.Args[1:]
 	if len(args) == 0 {
-		runInteractiveMenu(cfg, reader)
+		if term.IsTerminal(int(os.Stdin.Fd())) {
+			tui := NewCtopTUI(cfg)
+			_ = tui.Run()
+		} else {
+			cmdList(cfg, false)
+		}
 		return
 	}
 
@@ -29,9 +36,19 @@ func main() {
 
 	switch subcmd {
 	case "list", "ls", "-l":
-		cmdList(cfg, true)
+		// If running in an interactive terminal without --plain, launch ctop-style TUI
+		if term.IsTerminal(int(os.Stdin.Fd())) && (len(subargs) == 0 || subargs[0] != "--plain") {
+			tui := NewCtopTUI(cfg)
+			_ = tui.Run()
+		} else {
+			cmdList(cfg, true)
+		}
 	case "list-fast", "lf":
 		cmdList(cfg, false)
+	case "list-plain", "lp":
+		cmdList(cfg, true)
+	case "menu":
+		runInteractiveMenu(cfg, reader)
 	case "add", "new", "-a":
 		cmdAdd(cfg, reader, subargs)
 	case "connect", "c":
@@ -96,19 +113,29 @@ func main() {
 func printHelp() {
 	PrintBanner()
 	fmt.Printf(`%sUsage:%s
-  hssh                              Launch interactive dashboard
-  hssh list (or ls)                 List all servers with live latency ping
-  hssh list-fast (or lf)            List all servers without pinging
-  hssh add [alias] [ip] [user]      Add a new server & setup passwordless key
-  hssh connect [alias]              Connect to a server (or 'hssh <alias>')
-  hssh edit [alias]                 Edit an existing server config
-  hssh remove [alias]               Safely delete a server
-  hssh test [alias]                 Test passwordless authentication
-  hssh ping [alias]                 Check TCP reachability & latency
-  hssh copy-key [alias]             Send public key to remote host
-  hssh backup                       Create timestamped backup of ~/.ssh/config
-  hssh keygen                       Generate modern ed25519 key pair
-`, ColorBold, ColorReset)
+  hssh                                 Launch interactive host dashboard (ctop-style)
+  hssh list (or ls)                    Interactive host table with live latency ping
+  hssh list-plain (or lp)              Plain text table without TUI
+  hssh add [alias] [ip] [user]         Add a new server & setup passwordless key
+  hssh connect [alias]                 Connect to a server (or 'hssh <alias>')
+  hssh edit [alias]                    Edit an existing server config
+  hssh remove [alias]                  Safely delete a server
+  hssh test [alias]                    Test passwordless authentication
+  hssh ping [alias]                    Check TCP reachability & latency
+  hssh copy-key [alias]                Send public key to remote host
+  hssh backup                          Create timestamped backup of ~/.ssh/config
+  hssh keygen                          Generate modern ed25519 key pair
+
+%sInteractive TUI Controls:%s
+  [↑ / ↓] or [k / j]                   Navigate between hosts
+  [Enter]                              Open Actions Modal (Connect, Edit, Delete, etc.)
+  [c]                                  Connect via SSH immediately
+  [e]                                  Edit configuration of selected host
+  [d]                                  Delete selected host entry
+  [a]                                  Add new host
+  [r]                                  Refresh live ping latency
+  [q] or [Esc]                         Quit
+`, ColorBold, ColorReset, ColorBold, ColorReset)
 }
 
 func cmdList(cfg *SSHConfig, checkPing bool) {
