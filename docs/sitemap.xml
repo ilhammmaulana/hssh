@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ilhammmaulana.github.io/hssh/</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://ilhammmaulana.github.io/hssh/assets/hssh-preview.svg</image:loc>
+      <image:title>HSSH Terminal Dashboard Preview</image:title>
+      <image:caption>HSSH Fast OpenSSH Connection Manager preview showing live host ping latencies</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://ilhammmaulana.github.io/hssh/#install</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ilhammmaulana.github.io/hssh/#quickstart</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -22,6 +34,6 @@
     <loc>https://ilhammmaulana.github.io/hssh/#security</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
 </urlset>
