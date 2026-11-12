@@ -447,6 +447,26 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Interactive TUI Keyboard Controls (ctop style) -->
+      <div class="mt-8 bg-surface-900 border border-surface-800 rounded-lg p-5">
+        <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+          <!-- Heroicon: ComputerDesktop -->
+          <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
+          Interactive Dashboard Controls (ctop-style navigation)
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">When running <code class="text-slate-300">hssh</code> or <code class="text-slate-300">hssh list</code> in an interactive terminal, navigate and execute actions directly:</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-sky-400 font-bold">↑ / ↓</span> or <span class="text-sky-400 font-bold">k / j</span><br><span class="text-slate-400 font-sans text-xs">Navigate hosts</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-emerald-400 font-bold">Enter</span><br><span class="text-slate-400 font-sans text-xs">Actions Modal</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-cyan-400 font-bold">c</span><br><span class="text-slate-400 font-sans text-xs">Connect immediately</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-yellow-400 font-bold">e</span><br><span class="text-slate-400 font-sans text-xs">Edit configuration</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-rose-400 font-bold">d</span><br><span class="text-slate-400 font-sans text-xs">Delete host</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-purple-400 font-bold">k</span><br><span class="text-slate-400 font-sans text-xs">Copy public key</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-sky-400 font-bold">r</span><br><span class="text-slate-400 font-sans text-xs">Refresh latency</span></div>
+          <div class="bg-surface-950 p-2.5 rounded border border-surface-800"><span class="text-slate-400 font-bold">q / Esc</span><br><span class="text-slate-400 font-sans text-xs">Exit dashboard</span></div>
+        </div>
+      </div>
     </div>
   </section>
 
