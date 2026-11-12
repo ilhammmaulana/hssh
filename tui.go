@@ -18,15 +18,17 @@ type TUIHostStatus struct {
 }
 
 type CtopTUI struct {
-	Config       *SSHConfig
+	Config        *SSHConfig
 	SelectedIndex int
-	StatusMap    map[string]TUIHostStatus
-	StatusMu     sync.RWMutex
-	ModalOpen    bool
-	ModalIndex   int
-	Running      bool
-	TermWidth    int
-	TermHeight   int
+	StatusMap     map[string]TUIHostStatus
+	StatusMu      sync.RWMutex
+	ModalOpen     bool
+	ModalIndex    int
+	Running       bool
+	InSubprocess  bool
+	SubprocessMu  sync.Mutex
+	TermWidth     int
+	TermHeight    int
 }
 
 func NewCtopTUI(cfg *SSHConfig) *CtopTUI {
@@ -37,6 +39,7 @@ func NewCtopTUI(cfg *SSHConfig) *CtopTUI {
 		ModalOpen:     false,
 		ModalIndex:    0,
 		Running:       true,
+		InSubprocess:  false,
 		TermWidth:     80,
 		TermHeight:    24,
 	}
@@ -86,12 +89,17 @@ func (t *CtopTUI) Run() error {
 	// Initial async ping
 	t.RefreshPings()
 
-	// Redraw ticker for ping updates
+	// Redraw ticker for ping updates (only when not running a subprocess/edit prompt)
 	go func() {
 		for t.Running {
 			time.Sleep(300 * time.Millisecond)
 			if t.Running {
-				t.Draw()
+				t.SubprocessMu.Lock()
+				inSub := t.InSubprocess
+				t.SubprocessMu.Unlock()
+				if !inSub {
+					t.Draw()
+				}
 			}
 		}
 	}()
@@ -175,7 +183,11 @@ func (t *CtopTUI) handleMainKey(bytes []byte, fd int, oldState *term.State) {
 		if totalHosts > 0 {
 			t.execConnect(t.Config.Entries[t.SelectedIndex].Alias, fd, oldState)
 		}
-	case 'e', 'E': // Direct edit
+	case 'l', 'L': // Direct edit label
+		if totalHosts > 0 {
+			t.execEditLabel(t.Config.Entries[t.SelectedIndex].Alias, fd, oldState)
+		}
+	case 'e', 'E': // Direct edit all
 		if totalHosts > 0 {
 			t.execEdit(t.Config.Entries[t.SelectedIndex].Alias, fd, oldState)
 		}
@@ -202,7 +214,7 @@ func (t *CtopTUI) handleMainKey(bytes []byte, fd int, oldState *term.State) {
 
 func (t *CtopTUI) handleModalKey(bytes []byte, fd int, oldState *term.State) {
 	n := len(bytes)
-	menuOptions := 6 // Connect, Edit, CopyKey, Test, Delete, Cancel
+	menuOptions := 7 // Connect, Edit Label, Edit All, CopyKey, Test, Delete, Cancel
 
 	if n >= 3 && bytes[0] == 0x1b && bytes[1] == '[' {
 		switch bytes[2] {
@@ -243,20 +255,25 @@ func (t *CtopTUI) handleModalKey(bytes []byte, fd int, oldState *term.State) {
 		switch t.ModalIndex {
 		case 0: // Connect
 			t.execConnect(selectedHost, fd, oldState)
-		case 1: // Edit
+		case 1: // Edit Label
+			t.execEditLabel(selectedHost, fd, oldState)
+		case 2: // Edit All
 			t.execEdit(selectedHost, fd, oldState)
-		case 2: // Copy Key
+		case 3: // Copy Key
 			t.execCopyKey(selectedHost, fd, oldState)
-		case 3: // Test
+		case 4: // Test
 			t.execTest(selectedHost, fd, oldState)
-		case 4: // Delete
+		case 5: // Delete
 			t.execDelete(selectedHost, fd, oldState)
-		case 5: // Cancel
+		case 6: // Cancel
 			// Do nothing
 		}
 	case 'c', 'C':
 		t.ModalOpen = false
 		t.execConnect(selectedHost, fd, oldState)
+	case 'l', 'L':
+		t.ModalOpen = false
+		t.execEditLabel(selectedHost, fd, oldState)
 	case 'e', 'E':
 		t.ModalOpen = false
 		t.execEdit(selectedHost, fd, oldState)
@@ -270,6 +287,9 @@ func (t *CtopTUI) handleModalKey(bytes []byte, fd int, oldState *term.State) {
 
 // Temporary restore to cooked mode for terminal interactivity
 func (t *CtopTUI) restoreCooked(fd int, oldState *term.State) {
+	t.SubprocessMu.Lock()
+	t.InSubprocess = true
+	t.SubprocessMu.Unlock()
 	fmt.Print("\033[?25h\033[2J\033[H")
 	_ = term.Restore(fd, oldState)
 }
@@ -288,7 +308,21 @@ func (t *CtopTUI) resumeRaw(fd int) *term.State {
 			t.SelectedIndex = 0
 		}
 	}
+	t.SubprocessMu.Lock()
+	t.InSubprocess = false
+	t.SubprocessMu.Unlock()
+	t.Draw()
 	return newState
+}
+
+func (t *CtopTUI) execEditLabel(alias string, fd int, oldState *term.State) {
+	t.restoreCooked(fd, oldState)
+	fmt.Print("\033[H\033[2J")
+	reader := bufio.NewReader(os.Stdin)
+	cmdEditLabel(t.Config, reader, alias)
+	fmt.Printf("\n%sPress Enter to return to HSSH...%s", ColorGray, ColorReset)
+	Prompt(reader, "", "")
+	_ = t.resumeRaw(fd)
 }
 
 func (t *CtopTUI) execConnect(alias string, fd int, oldState *term.State) {
@@ -358,6 +392,13 @@ func (t *CtopTUI) execPing(alias string, fd int, oldState *term.State) {
 }
 
 func (t *CtopTUI) Draw() {
+	t.SubprocessMu.Lock()
+	inSub := t.InSubprocess
+	t.SubprocessMu.Unlock()
+	if inSub {
+		return
+	}
+
 	width, height, err := term.GetSize(int(os.Stdout.Fd()))
 	if err == nil && width > 0 && height > 0 {
 		t.TermWidth = width
@@ -392,11 +433,18 @@ func (t *CtopTUI) Draw() {
 		ColorRed, downCount, ColorReset)
 
 	headerRight := fmt.Sprintf("%s[a] Add  [r] Refresh  [q] Quit%s ", ColorGray, ColorReset)
-	spacing := t.TermWidth - 55
+	spacing := t.TermWidth - 70
 	if spacing < 2 {
 		spacing = 2
 	}
-	b.WriteString(fmt.Sprintf("%s%s%s\r\n", headerLeft, strings.Repeat(" ", spacing), headerRight))
+	if t.TermWidth < 75 {
+		headerRight = fmt.Sprintf("%s[q] Quit%s ", ColorGray, ColorReset)
+		spacing = t.TermWidth - 50
+		if spacing < 2 {
+			spacing = 2
+		}
+	}
+	b.WriteString(fmt.Sprintf("%s%s%s\033[K\r\n", headerLeft, strings.Repeat(" ", spacing), headerRight))
 
 	// Separator rule
 	ruleLen := t.TermWidth
@@ -478,13 +526,23 @@ func (t *CtopTUI) Draw() {
 		selectedHost := t.Config.Entries[t.SelectedIndex]
 		t.renderModal(&b, selectedHost)
 	} else {
-		b.WriteString(fmt.Sprintf("  %s[↑/↓]%s Navigate  %s[Enter]%s Actions  %s[c]%s Connect  %s[e]%s Edit  %s[d]%s Delete  %s[q]%s Quit\033[K\r\n",
-			ColorBold, ColorReset,
-			ColorBold, ColorReset,
-			ColorBold, ColorReset,
-			ColorBold, ColorReset,
-			ColorBold, ColorReset,
-			ColorBold, ColorReset))
+		if t.TermWidth < 82 {
+			b.WriteString(fmt.Sprintf("  %s[Enter]%s Actions  %s[l]%s Label  %s[e]%s Edit  %s[c]%s Connect  %s[q]%s Quit\033[K\r\n",
+				ColorCyan+ColorBold, ColorReset,
+				ColorCyan+ColorBold, ColorReset,
+				ColorCyan+ColorBold, ColorReset,
+				ColorCyan+ColorBold, ColorReset,
+				ColorCyan+ColorBold, ColorReset))
+		} else {
+			b.WriteString(fmt.Sprintf("  %s[↑/↓]%s Navigate  %s[Enter]%s Actions  %s[c]%s Connect  %s[l]%s Label  %s[e]%s Edit  %s[d]%s Delete  %s[q]%s Quit\033[K\r\n",
+				ColorBold, ColorReset,
+				ColorBold, ColorReset,
+				ColorBold, ColorReset,
+				ColorCyan+ColorBold, ColorReset,
+				ColorBold, ColorReset,
+				ColorBold, ColorReset,
+				ColorBold, ColorReset))
+		}
 	}
 
 	// Clear rest of terminal below
@@ -495,12 +553,16 @@ func (t *CtopTUI) Draw() {
 }
 
 func (t *CtopTUI) renderModal(b *strings.Builder, host *HostEntry) {
-	modalTitle := fmt.Sprintf(" Actions: %s (%s@%s:%s) ", host.Alias, host.User, host.HostName, host.Port)
-	if len(modalTitle) > 60 {
+	labelStr := host.Tags
+	if labelStr == "" {
+		labelStr = "none"
+	}
+	modalTitle := fmt.Sprintf(" Actions: %s [label: %s] ", host.Alias, labelStr)
+	if len(modalTitle) > 52 {
 		modalTitle = fmt.Sprintf(" Actions: %s ", host.Alias)
 	}
 
-	boxWidth := 56
+	boxWidth := 58
 	topBorder := fmt.Sprintf("┌──%s%s%s%s┐", ColorBold+ColorCyan, modalTitle, ColorReset, strings.Repeat("─", boxWidth-len(modalTitle)-4))
 	botBorder := fmt.Sprintf("└──%s┘", strings.Repeat("─", boxWidth-4))
 
@@ -511,7 +573,8 @@ func (t *CtopTUI) renderModal(b *strings.Builder, host *HostEntry) {
 		desc string
 	}{
 		{"c / Enter", "Connect via SSH"},
-		{"e", "Edit host settings (IP, user, port, label)"},
+		{"l", "Edit host label / tags"},
+		{"e", "Edit host settings (IP, user, port)"},
 		{"k", "Copy public SSH key (passwordless setup)"},
 		{"t", "Test passwordless connection"},
 		{"d", "Delete host entry"},
