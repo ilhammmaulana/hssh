@@ -1,0 +1,18 @@
+{
+  "name": "HSSH — Fast OpenSSH Connection Manager",
+  "short_name": "HSSH",
+  "start_url": "/hssh/",
+  "scope": "/hssh/",
+  "display": "standalone",
+  "background_color": "#070a0f",
+  "theme_color": "#070a0f",
+  "description": "Fast & Seamless OpenSSH Connection Manager with live latency ping checks and automated ed25519 passwordless keys.",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
