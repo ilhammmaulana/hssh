@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": {
+    "name": "hssh",
+    "title": "HSSH",
+    "tagline": "Fast & Seamless OpenSSH Connection Manager",
+    "description": "High-speed OpenSSH host manager with concurrent TCP latency checks and automated ed25519 key authentication for Linux, macOS, and Windows.",
+    "version": "1.0.1",
+    "license": "MIT",
+    "author": {
+      "name": "Ilham Maulana",
+      "github": "https://github.com/ilhammmaulana"
+    },
+    "urls": {
+      "homepage": "https://ilhammmaulana.github.io/hssh/",
+      "repository": "https://github.com/ilhammmaulana/hssh",
+      "releases": "https://github.com/ilhammmaulana/hssh/releases",
+      "sitemap": "https://ilhammmaulana.github.io/hssh/sitemap.xml",
+      "data": "https://ilhammmaulana.github.io/hssh/data.json"
+    }
+  },
+  "install": {
+    "linux": {
+      "type": "shell",
+      "command": "curl -fsSL https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.sh | bash",
+      "deb": "https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_1.0.1_linux_amd64.deb",
+      "rpm": "https://github.com/ilhammmaulana/hssh/releases/latest/download/hssh_1.0.1_linux_amd64.rpm"
+    },
+    "macos": {
+      "type": "shell",
+      "command": "curl -fsSL https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.sh | bash"
+    },
+    "windows": {
+      "type": "powershell",
+      "command": "irm https://raw.githubusercontent.com/ilhammmaulana/hssh/main/install.ps1 | iex"
+    },
+    "go": {
+      "type": "go",
+      "command": "go install github.com/ilhammmaulana/hssh@latest"
+    }
+  },
+  "commands": [
+    {
+      "command": "hssh",
+      "arguments": "",
+      "description": "Launches the interactive ctop-style host dashboard"
+    },
+    {
+      "command": "hssh list",
+      "arguments": "",
+      "description": "Interactive host table with concurrent live latency pings"
+    },
+    {
+      "command": "hssh list-plain",
+      "arguments": "",
+      "description": "Plain text output without TUI (script-friendly)"
+    },
+    {
+      "command": "hssh <alias>",
+      "arguments": "<alias>",
+      "description": "Direct shortcut to connect to a server"
+    },
+    {
+      "command": "hssh add",
+      "arguments": "[alias] [ip] [user] [port]",
+      "description": "Adds a new server and deploys passwordless ed25519 key"
+    },
+    {
+      "command": "hssh ping",
+      "arguments": "[alias]",
+      "description": "Tests TCP reachability and returns round-trip latency"
+    },
+    {
+      "command": "hssh test",
+      "arguments": "[alias]",
+      "description": "Validates passwordless login status non-interactively"
+    },
+    {
+      "command": "hssh edit",
+      "arguments": "[alias]",
+      "description": "Interactively updates host IP, user, port, or tags"
+    },
+    {
+      "command": "hssh copy-key",
+      "arguments": "[alias]",
+      "description": "Copies public key with universal fallback piping"
+    },
+    {
+      "command": "hssh backup",
+      "arguments": "",
+      "description": "Creates an atomic timestamped backup of ~/.ssh/config"
+    },
+    {
+      "command": "hssh remove",
+      "arguments": "[alias]",
+      "description": "Safely removes a server from config with pre-delete backup"
+    }
+  ],
+  "tui_controls": {
+    "navigate": "↑ / ↓ or k / j",
+    "actions_modal": "Enter",
+    "connect": "c",
+    "edit": "e",
+    "delete": "d",
+    "copy_key": "k",
+    "test": "t",
+    "refresh": "r",
+    "quit": "q or Esc"
+  }
+}
